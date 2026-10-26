@@ -3,6 +3,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
+import { CatalogProvider } from '@/lib/catalog';
 import { HouseholdProvider, useHousehold } from '@/lib/household';
 import { SessionProvider, useSession } from '@/lib/session';
 import { colors } from '@/theme';
@@ -15,8 +16,10 @@ export default function RootLayout() {
   return (
     <SessionProvider>
       <HouseholdProvider>
-        <StatusBar style="dark" />
-        <RootStack />
+        <CatalogProvider>
+          <StatusBar style="dark" />
+          <RootStack />
+        </CatalogProvider>
       </HouseholdProvider>
     </SessionProvider>
   );
@@ -45,7 +48,20 @@ function RootStack() {
       <Stack.Protected guard={!!session && !!household}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="invite" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="expense/new" options={{ ...pushed, presentation: 'modal', title: 'New expense' }} />
+        <Stack.Screen name="expense/[id]/index" options={{ ...pushed, title: '' }} />
+        <Stack.Screen name="expense/[id]/edit" options={{ ...pushed, presentation: 'modal', title: 'Edit expense' }} />
+        <Stack.Screen name="activity" options={{ ...pushed, title: 'Activity' }} />
+        <Stack.Screen name="settings" options={{ ...pushed, title: 'Settings' }} />
       </Stack.Protected>
     </Stack>
   );
 }
+
+const pushed = {
+  headerShown: true,
+  headerStyle: { backgroundColor: colors.bg },
+  headerShadowVisible: false,
+  headerTintColor: colors.primary,
+  headerTitleStyle: { color: colors.text },
+};
