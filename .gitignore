@@ -1,0 +1,19 @@
+node_modules/
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+ios/
+android/
+*.tsbuildinfo
+
+# Local secrets
+.env
+.env*.local
+
+# Supabase local state
+supabase/.branches
+supabase/.temp
+
+.DS_Store
+npm-debug.*
