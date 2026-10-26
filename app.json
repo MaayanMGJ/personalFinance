@@ -20,6 +20,13 @@
       "expo-router",
       "expo-sqlite",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "Lets you attach a receipt photo to an expense.",
+          "cameraPermission": "Lets you snap a receipt for an expense."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",

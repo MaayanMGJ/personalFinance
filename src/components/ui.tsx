@@ -15,9 +15,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors, radius, space, type } from '@/theme';
 
-export function Screen({ children, style }: { children: ReactNode; style?: ViewStyle }) {
+export function Screen({
+  children,
+  style,
+  underHeader,
+}: {
+  children: ReactNode;
+  style?: ViewStyle;
+  /** Set on screens that show a navigation header, which already clears the notch. */
+  underHeader?: boolean;
+}) {
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.safe} edges={underHeader ? ['left', 'right'] : ['top', 'left', 'right']}>
       <ScrollView
         contentContainerStyle={[styles.screen, style]}
         keyboardShouldPersistTaps="handled">
@@ -90,6 +99,39 @@ export function Button({
   );
 }
 
+export function Chip({
+  label,
+  selected,
+  onPress,
+}: {
+  label: string;
+  selected?: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.chip,
+        selected && { backgroundColor: colors.primary, borderColor: colors.primary },
+        pressed && { opacity: 0.7 },
+      ]}>
+      <Text style={[type.small, { color: selected ? colors.onPrimary : colors.text }]}>{label}</Text>
+    </Pressable>
+  );
+}
+
+export function ChipRow({ label, children }: { label?: string; children: ReactNode }) {
+  return (
+    <View style={{ gap: space.xs }}>
+      {label && <Text style={type.small}>{label}</Text>}
+      <View style={styles.chipRow}>{children}</View>
+    </View>
+  );
+}
+
 export function Field({ label, ...input }: { label: string } & TextInputProps) {
   return (
     <View style={{ gap: space.xs }}>
@@ -138,6 +180,15 @@ const styles = StyleSheet.create({
   secondary: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.primary },
   link: { minHeight: 40 },
   buttonText: { fontSize: 17, fontWeight: '600' },
+  chip: {
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   input: {
     ...type.body,
     minHeight: 52,
