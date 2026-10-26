@@ -3,78 +3,82 @@ import { useState } from 'react';
 import { Body, Button, ErrorText, Field, Screen, Title } from '@/components/ui';
 import { supabase } from '@/lib/supabase';
 
-// Email a 6-digit code, then type it in. No passwords, and no links to open
-// on the right device.
+// Email and password. Works without sending any email as long as
+// "Confirm email" is off in Supabase (Authentication > Sign In / Providers).
 export default function SignIn() {
+  const [mode, setMode] = useState<'sign-in' | 'sign-up'>('sign-in');
   const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
-  const [step, setStep] = useState<'email' | 'code'>('email');
+  const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
-  async function sendCode() {
+  async function submit() {
     setBusy(true);
     setError(null);
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: { shouldCreateUser: true },
-    });
+    setNotice(null);
+    const credentials = { email: email.trim(), password };
+    if (mode === 'sign-in') {
+      const { error } = await supabase.auth.signInWithPassword(credentials);
+      if (error) setError(error.message);
+    } else {
+      const { data, error } = await supabase.auth.signUp(credentials);
+      if (error) setError(error.message);
+      else if (!data.session) {
+        setNotice('Check your email to confirm your account, then sign in here.');
+        setMode('sign-in');
+      }
+    }
     setBusy(false);
-    if (error) setError(error.message);
-    else setStep('code');
-  }
-
-  async function verify() {
-    setBusy(true);
-    setError(null);
-    const { error } = await supabase.auth.verifyOtp({
-      email: email.trim(),
-      token: code.trim(),
-      type: 'email',
-    });
-    setBusy(false);
-    if (error) setError(error.message);
     // On success the session listener moves us on.
   }
+
+  const ready = email.includes('@') && password.length >= 6;
 
   return (
     <Screen style={{ justifyContent: 'center' }}>
       <Title>Money, together.</Title>
-      <Body muted>Shared expenses for the two of you. Sign in with your email to start.</Body>
+      <Body muted>
+        {mode === 'sign-in'
+          ? 'Shared expenses for the two of you. Sign in to continue.'
+          : 'Create your account. Your partner makes their own and joins you with a code.'}
+      </Body>
 
-      {step === 'email' ? (
-        <>
-          <Field
-            label="Email"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            autoComplete="email"
-            keyboardType="email-address"
-            placeholder="you@example.com"
-            onSubmitEditing={sendCode}
-          />
-          <ErrorText>{error}</ErrorText>
-          <Button title="Email me a code" onPress={sendCode} loading={busy} disabled={!email.includes('@')} />
-        </>
-      ) : (
-        <>
-          <Body>We sent a 6-digit code to {email.trim()}.</Body>
-          <Field
-            label="Code"
-            value={code}
-            onChangeText={setCode}
-            keyboardType="number-pad"
-            autoComplete="one-time-code"
-            maxLength={6}
-            placeholder="123456"
-            onSubmitEditing={verify}
-          />
-          <ErrorText>{error}</ErrorText>
-          <Button title="Sign in" onPress={verify} loading={busy} disabled={code.trim().length < 6} />
-          <Button title="Use a different email" variant="link" onPress={() => setStep('email')} />
-        </>
-      )}
+      <Field
+        label="Email"
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+        autoComplete="email"
+        keyboardType="email-address"
+        placeholder="you@example.com"
+      />
+      <Field
+        label="Password"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+        autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'}
+        placeholder="At least 6 characters"
+        onSubmitEditing={() => ready && submit()}
+      />
+
+      <ErrorText>{error}</ErrorText>
+      {notice && <Body>{notice}</Body>}
+      <Button
+        title={mode === 'sign-in' ? 'Sign in' : 'Create account'}
+        onPress={submit}
+        loading={busy}
+        disabled={!ready}
+      />
+      <Button
+        title={mode === 'sign-in' ? 'New here? Create an account' : 'Already have an account? Sign in'}
+        variant="link"
+        onPress={() => {
+          setError(null);
+          setMode(mode === 'sign-in' ? 'sign-up' : 'sign-in');
+        }}
+      />
     </Screen>
   );
 }

@@ -26,10 +26,9 @@ The v1 plan (spec, screens, data model, milestones) lives in the project's
    npx supabase link --project-ref <your-project-ref>
    npx supabase db push
    ```
-4. **Send sign-in codes instead of links.** In the Supabase dashboard, go to
-   Authentication > Emails, and in both the "Magic Link" and "Confirm signup"
-   templates include `{{ .Token }}`. `supabase/templates/magic_link.html` has a
-   ready-made version.
+4. **Let people sign in without an email step.** In the Supabase dashboard, go
+   to Authentication > Sign In / Providers > Email and turn off "Confirm email".
+   The app signs in with email and password, so no email is sent.
 5. **Connect the app:** copy `.env.example` to `.env` and fill in the project
    URL and publishable key from Project Settings > API.
 6. **Run it:** `npm start`, then scan the QR code with the Expo Go app on your
